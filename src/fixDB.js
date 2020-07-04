@@ -3,14 +3,14 @@
 var Discord = require('discord.js');
 var logger = require('winston');
 var schedule = require('node-schedule');
-var auth = require('./auth.json');
 var User = require("./user.js");
 const MongoClient = require('mongodb').MongoClient;
 const package = require('../package.json');
+const config = require('../config.json');
 const roles = ["F2P", "Normal League", "Evil League", "Sadistic League", "Whales League"];
 const roles_levels = [100, 2000, 4000, 4901, 5001];
 
-const uri = auth.mongoConnectionString;
+const uri = config.auth.mongoConnectionString;
 const mongo = new MongoClient(uri, {
     useNewUrlParser: true
 });

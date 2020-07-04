@@ -1,11 +1,10 @@
 var Discord = require('discord.js');
-var auth = require('./auth.json');
 const config = require('../config.json');
 const eloRoles = require('./eloRoles.json');
 
 var honguGuild = null;
 const client = new Discord.Client();
-client.login(auth.token)
+client.login(config.auth.token)
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);

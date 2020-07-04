@@ -1,7 +1,7 @@
-var auth = require('./auth.json');
 const MongoClient = require('mongodb').MongoClient;
+const config = require('../config.json');
 
-const uri = auth.mongoConnectionString;
+const uri = config.auth.mongoConnectionString;
 const mongo = new MongoClient(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true
