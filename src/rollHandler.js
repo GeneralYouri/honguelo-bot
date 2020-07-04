@@ -1,5 +1,5 @@
 const eloRoles = require('./eloRoles.json');
-const User = require("./user.js");
+const User = require('./user.js');
 const userRepo = require('./userRepo.js');
 const discordHandler = require('./discordHandler');
 
@@ -20,7 +20,7 @@ async function doRoll(evt) {
     let reply = await updateRoll(rollres, evt.author.id, evt.author.username);
 
     if (reply === null) {
-        const getout = discordHandler.getEmoji("getout");
+        const getout = discordHandler.getEmoji('getout');
         reply = `you already had your roll today. ${getout}`;
     } else {
         let roleName = null;
@@ -40,7 +40,7 @@ async function doRoll(evt) {
 }
 
 async function updateRoll(rollres, userId, username) {
-    console.log("Rolling for " + username);
+    console.log('Rolling for ' + username);
 
     let user = await userRepo.findUserById(userId);
     if (!user) {

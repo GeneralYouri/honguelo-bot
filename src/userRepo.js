@@ -9,7 +9,7 @@ const mongo = new MongoClient(uri, {
 
 let rolls = null;
 mongo.connect(err => {
-    rolls = mongo.db("user_data").collection("rolls");
+    rolls = mongo.db('user_data').collection('rolls');
 });
 
 module.exports.findAllOrderByBestRoll = async function findAllOrderByBestRoll() {
@@ -47,7 +47,7 @@ module.exports.findAllOrderByAvg = async function findAllOrderByAvg() {
 
 module.exports.findUserById = async function findAllById(id) {
     return rolls.findOne({
-        "userid": id,
+        userid: id,
     });
 };
 

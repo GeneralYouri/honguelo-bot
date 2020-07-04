@@ -7,7 +7,7 @@ const MongoClient = require('mongodb').MongoClient;
 const package = require('../package.json');
 const config = require('../config.json');
 const User = require('./user.js');
-const roles = ["F2P", "Normal League", "Evil League", "Sadistic League", "Whales League"];
+const roles = ['F2P', 'Normal League', 'Evil League', 'Sadistic League', 'Whales League'];
 const roles_levels = [100, 2000, 4000, 4901, 5001];
 
 const uri = config.auth.mongoConnectionString;
@@ -17,7 +17,7 @@ const mongo = new MongoClient(uri, {
 
 let rolls;
 mongo.connect(err => {
-    rolls = mongo.db("user_data").collection("rolls");
+    rolls = mongo.db('user_data').collection('rolls');
 
     rolls.find({}, {
         projection: {
@@ -49,7 +49,7 @@ mongo.connect(err => {
 
             rolls.updateOne(query, values, (err, res) => {
                 if (err) throw err;
-                console.log("saved one value");
+                console.log('saved one value');
             });
         }
     })

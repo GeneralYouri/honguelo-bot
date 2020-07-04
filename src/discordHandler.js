@@ -17,9 +17,9 @@ client.on('guildMemberAdd', (evt) => {
     const guild = evt.guild;
     const member = guild.members.cache.find(member => member.id === userid);
 
-    let rolename = "Unranked";
-    if (userid === "279656190655463425") //June id
-        rolename = "Technical Director";
+    let rolename = 'Unranked';
+    if (userid === '279656190655463425') //June id
+        rolename = 'Technical Director';
 
     giveRole(rolename, guild, member);
 });
@@ -29,7 +29,7 @@ client.on('messageReactionAdd', (reaction, user) => {
         const userid = user.id;
         const guild = honguGuild;
         const member = guild.members.cache.find(member => member.id === userid);
-        const rolename = "Addicted";
+        const rolename = 'Addicted';
 
         giveRole(rolename, guild, member);
     }
@@ -40,7 +40,7 @@ client.on('messageReactionRemove', (reaction, user) => {
         const userid = user.id;
         const guild = honguGuild;
         const member = guild.members.cache.find(member => member.id === userid);
-        const rolename = "Addicted";
+        const rolename = 'Addicted';
 
         removeRole(rolename, guild, member);
     }
