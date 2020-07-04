@@ -36,12 +36,14 @@ client.on('messageReactionAdd', (reaction, user) => {
 });
 
 client.on('messageReactionRemove', (reaction, user) => {
-    let userid = user.id;
-    let guild = honguGuild;
-    let member = guild.members.cache.find(member => member.id === userid);
-    let rolename = "Addicted";
+    if (reaction.message.id === config.roleMessageID) {
+        let userid = user.id;
+        let guild = honguGuild;
+        let member = guild.members.cache.find(member => member.id === userid);
+        let rolename = "Addicted";
 
-    removeRole(rolename, guild, member);
+        removeRole(rolename, guild, member);
+    }
 });
 
 module.exports.setHandler = setHandler;
