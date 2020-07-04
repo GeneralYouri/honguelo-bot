@@ -3,6 +3,8 @@
 const logger = require('winston');
 const schedule = require('node-schedule');
 const package = require('../package.json');
+const config = require('../config.json');
+const eloRoles = require('./eloRoles.json');
 const userRepo = require('./userRepo.js');
 const discordHandler = require('./discordHandler');
 const rollHandler = require('./rollHandler.js');
@@ -20,68 +22,75 @@ const midnightPost = schedule.scheduleJob('0 0 0 * * *', async function () {
     const rollsByBest = await userRepo.findAllOrderByBestRoll();
     if (rollsByBest === null) return;
 
-    let msg = '```It is currently midnight.\n' + 'The best roll so far is ' + rollsByBest[0].best_roll + ' from ' + rollsByBest[0].username + '.\n';
+    const lines = [
+        '```',
+        'It is currently midnight.',
+        `The best roll so far is ${rollsByBest[0].best_roll} from ${rollsByBest[0].username}.`,
+        '',
+    ];
 
     let rollsByAvg = await userRepo.findAllOrderByAvg();
     if (rollsByAvg === null) return;
 
-    let tot = 100;
-    if (rollsByAvg.length < tot)
-        tot = rollsByAvg.length;
-    msg += 'The top ' + tot + ' scores are: ';
+    const n = Math.min(rollsByAvg.length, 100);
+    lines.push(`The top ${n} scores are:`);
 
-    for (let i = 0; i < tot; i++) {
+    for (let i = 0; i < n; i++) {
         let avg = rollsByAvg[i].average;
-        // Round to 2 decimal places
-        avg = Math.round(avg * 100) / 100;
-        msg += '\n' + (i + 1) + ' - ' + rollsByAvg[i].username + ': ' + avg + '';
+        lines.push(`${i + 1} - ${rollsByAvg[i].username}: ${avg.toFixed(2)}`);
     }
 
-    msg += '\n\nYou can now roll again.```';
-    msg += '\n<@&' + await discordHandler.getRole(null, 'Addicted').id + '> Ping.';
+    lines.push(
+        '',
+        'You can now roll again',
+        '```',
+        `<@&${await discordHandler.getRole(null, 'Addicted').id}> Ping`,
+    );
+    const msg = lines.join('\n');
     discordHandler.sendMessageToChannel(config.leaderboardChannelID, msg);
 });
 
-async function getaverage(userid) {
-    const userRes = await userRepo.findUserById(userid);
+const noRollsMessage = 'you haven\'t rolled yet. Use the command `=roll` to start playing.';
 
-    if (!userRes || userRes.rolls.length === 0) {
-        return 'you have not rolled yet.';
+async function getAverage(userid) {
+    const user = await userRepo.findUserById(userid);
+
+    if (!user || user.rolls.length === 0) {
+        return noRollsMessage;
     } else {
-        let avg = userRes.average;
-        //Round to 2 decimal places
-        avg = Math.round(avg * 100) / 100;
-        return 'your score is ' + avg.toString();
+        let avg = user.average;
+        return `your score is ${avg.toFixed(2)}`;
     }
 }
 
 async function lastRoll(userid) {
-    const result = await userRepo.findUserById(userid);
-    if (!result) {
-        return 'you haven\'t rolled yet. Use the command =roll to start playing.';
+    const user = await userRepo.findUserById(userid);
+    if (!user) {
+        return noRollsMessage;
     } else {
-        return 'your last roll was ' + result.rolls[result.rolls.length - 1].toString();
+        return `your last roll was ${user.rolls[user.rolls.length - 1]}`;
     }
 }
 
-async function findtop(userid) {
-    const result = await userRepo.findUserById(userid);
-    if (!result) {
-        return 'you haven\'t rolled yet. Use the command =roll to start playing.';
+async function findTop(userid) {
+    const user = await userRepo.findUserById(userid);
+    if (!user) {
+        return noRollsMessage;
     } else {
-        return 'your top roll was ' + Math.max(...result.rolls).toString();
+        return `your top roll was ${Math.max(...user.rolls)}`;
     }
 }
 
 async function findBot(userid) {
-    const result = await userRepo.findUserById(userid);
-    if (!result) {
-        return 'you haven\'t rolled yet. Use the command =roll to start playing.';
+    const user = await userRepo.findUserById(userid);
+    if (!user) {
+        return noRollsMessage;
     } else {
-        return 'your bot roll was ' + Math.min(...result.rolls).toString();
+        return `your bot roll was ${Math.min(...user.rolls)}`;
     }
 }
 
+// TODO: Make this dynamically generate by reading other commands, instead of being hardcoded
 function helpMessage() {
     return '```=Help: Shows all of HONGUELO\'s commands. Looking at that right now!\n' +
         '=Roll: Rolls for your ELO if you haven\'t done so today\n' +
@@ -98,25 +107,20 @@ function helpMessage() {
 }
 
 function leaguesMessage() {
-    return '```fix\n' +
-        'Official ELO Leagues Requirements:```' +
-        '1-99: F2P\n' +
-        '100-1999: Normal\n' +
-        '2000-3999: Evil\n' +
-        '4000-4900: Sadistic\n' +
-        '4901-5000: Whales';
+    const parsedRoles = eloRoles.slice(1).map((role, index) => `${eloRoles[index].topBound}-${role.topBound - 1}: ${role.name}`);
+    return `\`\`\`fix\nOfficial ELO Leagues Requirements:\`\`\`${parsedRoles.join('\n')}`;
 }
 
 async function countdown(userid) {
     const result = await userRepo.findUserById(userid);
-    if (result != null && !rollHandler.userCanRoll(result)) {
+    if (result != null && !rollHandler.canUserRoll(result)) {
         const next = new Date();
         next.setHours(0, 0, 0, 0);
         next.setDate(next.getDate() + 1);
         const diffInSec = Math.floor((next - new Date()) / (1000));
         const diffInMinutes = Math.floor(diffInSec / 60);
         const diffInHours = Math.floor(diffInMinutes / 60);
-        return 'next roll available in ' + diffInHours + ' hours, ' + (diffInMinutes - diffInHours * 60) + ' minutes, ' + (diffInSec - diffInMinutes * 60) + ' seconds.';
+        return `next roll available in ${diffInHours} hours, ${diffInMinutes - diffInHours * 60} minutes, ${diffInSec - diffInMinutes * 60} seconds.`;
     } else {
         return 'you can roll now.';
     }
@@ -124,18 +128,16 @@ async function countdown(userid) {
 
 async function best() {
     const bestRolls = await userRepo.findAllOrderByBestRoll();
-
     if (bestRolls === null || bestRolls.length === 0) {
         return 'there have been no rolls this season so far';
     }
 
-    let msg = 'the best roll for this season is `' + bestRolls[0].best_roll + '` from `' + bestRolls[0].username + '`.\n';
-
     const bestAvg = await userRepo.findAllOrderByAvg();
-
-    msg += 'The best score for this season is `' + bestAvg[0].average.toFixed(2) + '` from `' + bestAvg[0].username + '`.';
-
-    return msg;
+    const lines = [
+        `the best roll for this season is \`${bestRolls[0].best_roll}\` from \`${bestRolls[0].username}\`.`,
+        `The best score for this season is \`${bestAvg[0].average.toFixed(2)}\` from \`${bestAvg[0].username}\`.`,
+    ];
+    return lines.join('\n');
 }
 
 async function rank(userid) {
@@ -150,12 +152,18 @@ async function rank(userid) {
         return 'You have not rolled yet.';
     else {
         position++;
-        let suffix = 'th';
-        if (position % 10 === 1 && position % 100 !== 11) suffix = 'st';
-        if (position % 10 === 2 && position % 100 !== 12) suffix = 'nd';
-        if (position % 10 === 3 && position % 100 !== 13) suffix = 'rd'; //tnx Youri because i'm lazy
-        return 'at the moment, you are ranked ' + position + suffix + '.';
+        const suffix = getNumberSuffix(position);
+        return `at the moment, you are ranked ${position}${suffix}.`;
     }
+}
+
+// tnx Youri because i'm lazy
+function getNumberSuffix(n) {
+    let suffix = 'th';
+    if (n % 10 === 1 && n % 100 !== 11) suffix = 'st';
+    if (n % 10 === 2 && n % 100 !== 12) suffix = 'nd';
+    if (n % 10 === 3 && n % 100 !== 13) suffix = 'rd';
+    return suffix;
 }
 
 async function counter(userid) {
@@ -164,7 +172,7 @@ async function counter(userid) {
     if (user === null || user.rolls.length === 0) {
         msg = 'you have not rolled yet';
     } else {
-        msg = 'you rolled ' + user.rolls.length + ' times.'
+        msg = `you rolled ${user.rolls.length} times.`;
     }
 
     return msg;
@@ -177,10 +185,10 @@ async function handleMessage(evt) {
     .then(console.log)
     .catch(console.error);*/
 
-    if (message.substring(0, 1) === '=') {
-        let args = message.toLowerCase().substring(1).split(' ');
-        const cmd = args[0];
-        args = args.splice(1);
+    if (message.startsWith('=')) {
+        // Parse command arguments
+        const args = message.slice(1).split(/\s+/g);
+        const cmd = args.shift().toLowerCase();
         switch (cmd) {
             case 'version':
                 evt.reply(package.version);
@@ -199,13 +207,13 @@ async function handleMessage(evt) {
                 evt.reply(leaguesMessage());
                 break;
             case 'score':
-                evt.reply(await getaverage(evt.author.id));
+                evt.reply(await getAverage(evt.author.id));
                 break;
             case 'last':
                 evt.reply(await lastRoll(evt.author.id));
                 break;
             case 'top':
-                evt.reply(await findtop(evt.author.id));
+                evt.reply(await findTop(evt.author.id));
                 break;
             case 'countdown':
             case 'time':
