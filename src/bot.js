@@ -1,40 +1,39 @@
 #!/usr/bin/env node
 
-var logger = require('winston');
-var schedule = require('node-schedule');
+const logger = require('winston');
+const schedule = require('node-schedule');
 const package = require('../package.json');
-const userRepo = require('./userRepo.js')
+const userRepo = require('./userRepo.js');
 const discordHandler = require('./discordHandler');
 const rollHandler = require('./rollHandler.js');
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
 logger.add(new logger.transports.Console, {
-    colorize: true
+    colorize: true,
 });
 logger.level = 'debug';
 
 discordHandler.setHandler(handleMessage);
 
-var midnightPost = schedule.scheduleJob('0 0 0 * * *', async function () {
-    let rollsByBest = await userRepo.findAllOrderByBestRoll();
+const midnightPost = schedule.scheduleJob('0 0 0 * * *', async function () {
+    const rollsByBest = await userRepo.findAllOrderByBestRoll();
     if (rollsByBest === null) return;
 
-    var msg = "```It is currently midnight.\n" +
-        "The best roll so far is " + rollsByBest[0].best_roll + " from " + rollsByBest[0].username + ".\n";
+    let msg = "```It is currently midnight.\n" + "The best roll so far is " + rollsByBest[0].best_roll + " from " + rollsByBest[0].username + ".\n";
 
     let rollsByAvg = await userRepo.findAllOrderByAvg();
     if (rollsByAvg === null) return;
 
-    var tot = 100;
+    let tot = 100;
     if (rollsByAvg.length < tot)
         tot = rollsByAvg.length;
     msg += "The top " + tot + " scores are: ";
 
-    for (var i = 0; i < tot; i++) {
+    for (let i = 0; i < tot; i++) {
         let avg = rollsByAvg[i].average;
         //Round to 2 decimal places
-        avg = Math.round(avg * 100) / 100
+        avg = Math.round(avg * 100) / 100;
         msg += "\n" + (i + 1) + " - " + rollsByAvg[i].username + ": " + avg + "";
     }
 
@@ -44,20 +43,20 @@ var midnightPost = schedule.scheduleJob('0 0 0 * * *', async function () {
 });
 
 async function getaverage(userid) {
-    var userRes = await userRepo.findUserById(userid);
+    const userRes = await userRepo.findUserById(userid);
 
     if (!userRes || userRes.rolls.length === 0) {
         return "you have not rolled yet.";
     } else {
-        var avg = userRes.average;
+        let avg = userRes.average;
         //Round to 2 decimal places
-        avg = Math.round(avg * 100) / 100
+        avg = Math.round(avg * 100) / 100;
         return "your score is " + avg.toString();
     }
 }
 
 async function lastRoll(userid) {
-    var result = await userRepo.findUserById(userid);
+    const result = await userRepo.findUserById(userid);
     if (!result) {
         return "you haven't rolled yet. Use the command =roll to start playing.";
     } else {
@@ -66,8 +65,7 @@ async function lastRoll(userid) {
 }
 
 async function findtop(userid) {
-    var result = await userRepo.findUserById(userid);
-
+    const result = await userRepo.findUserById(userid);
     if (!result) {
         return "you haven't rolled yet. Use the command =roll to start playing.";
     } else {
@@ -76,8 +74,7 @@ async function findtop(userid) {
 }
 
 async function findBot(userid) {
-    var result = await userRepo.findUserById(userid);
-
+    const result = await userRepo.findUserById(userid);
     if (!result) {
         return "you haven't rolled yet. Use the command =roll to start playing.";
     } else {
@@ -111,14 +108,14 @@ function leaguesMessage() {
 }
 
 async function countdown(userid) {
-    var result = await userRepo.findUserById(userid);
+    const result = await userRepo.findUserById(userid);
     if (result != null && !rollHandler.userCanRoll(result)) {
-        var next = new Date();
+        const next = new Date();
         next.setHours(0, 0, 0, 0);
         next.setDate(next.getDate() + 1);
-        var diffInSec = Math.floor((next - new Date()) / (1000));
-        var diffInMinutes = Math.floor(diffInSec / 60);
-        var diffInHours = Math.floor(diffInMinutes / 60);
+        const diffInSec = Math.floor((next - new Date()) / (1000));
+        const diffInMinutes = Math.floor(diffInSec / 60);
+        const diffInHours = Math.floor(diffInMinutes / 60);
         return "next roll available in " + diffInHours + " hours, " + (diffInMinutes - diffInHours * 60) + " minutes, " + (diffInSec - diffInMinutes * 60) + " seconds.";
     } else {
         return "you can roll now.";
@@ -126,15 +123,15 @@ async function countdown(userid) {
 }
 
 async function best() {
-    var bestRolls = await userRepo.findAllOrderByBestRoll();
+    const bestRolls = await userRepo.findAllOrderByBestRoll();
 
     if (bestRolls === null || bestRolls.length === 0) {
         return "there have been no rolls this season so far";
     }
 
-    var msg = "the best roll for this season is `" + bestRolls[0].best_roll + "` from `" + bestRolls[0].username + "`.\n"
+    let msg = "the best roll for this season is `" + bestRolls[0].best_roll + "` from `" + bestRolls[0].username + "`.\n";
 
-    var bestAvg = await userRepo.findAllOrderByAvg();
+    const bestAvg = await userRepo.findAllOrderByAvg();
 
     msg += "The best score for this season is `" + bestAvg[0].average.toFixed(2) + "` from `" + bestAvg[0].username + "`.";
 
@@ -142,10 +139,10 @@ async function best() {
 }
 
 async function rank(userid) {
-    var bestAvg = await userRepo.findAllOrderByAvg();
+    const bestAvg = await userRepo.findAllOrderByAvg();
 
-    var position = 0;
-    while (position < bestAvg.length && bestAvg[position].userid != userid) {
+    let position = 0;
+    while (position < bestAvg.length && bestAvg[position].userid !== userid) {
         position++;
     }
 
@@ -153,7 +150,7 @@ async function rank(userid) {
         return "You have not rolled yet.";
     else {
         position++;
-        var suffix = "th";
+        let suffix = "th";
         if (position % 10 === 1 && position % 100 !== 11) suffix = 'st';
         if (position % 10 === 2 && position % 100 !== 12) suffix = 'nd';
         if (position % 10 === 3 && position % 100 !== 13) suffix = 'rd'; //tnx Youri because i'm lazy
@@ -162,8 +159,8 @@ async function rank(userid) {
 }
 
 async function counter(userid) {
-    var user = await userRepo.findUserById(userid);
-    var msg;
+    const user = await userRepo.findUserById(userid);
+    let msg;
     if (user === null || user.rolls.length === 0) {
         msg = "you have not rolled yet";
     } else {
@@ -174,56 +171,46 @@ async function counter(userid) {
 }
 
 async function handleMessage(evt) {
-    message = evt.content;
+    const message = evt.content;
     /* Break the comment in case of DUNAK
     evt.react(evt.guild.emojis.cache.find(emoji => emoji.name === "pog"))
     .then(console.log)
     .catch(console.error);*/
 
-    if (message.substring(0, 1) == '=') {
-        var args = message.toLowerCase().substring(1).split(' ');
-        var cmd = args[0];
+    if (message.substring(0, 1) === '=') {
+        let args = message.toLowerCase().substring(1).split(' ');
+        const cmd = args[0];
         args = args.splice(1);
         switch (cmd) {
-            // =version
             case 'version':
                 evt.reply(package.version);
                 break;
-                // =roll
             case 'roll':
                 rollHandler.evtRoll(evt);
                 break;
-                // =practice
             case 'practice':
                 evt.reply(rollHandler.roll());
                 break;
-                // =help
             case 'help':
                 evt.reply(helpMessage());
                 break;
-                // =leagues
             case 'leagues':
             case 'league':
                 evt.reply(leaguesMessage());
                 break;
-                // =score
             case 'score':
                 evt.reply(await getaverage(evt.author.id));
                 break;
-                // =last
             case 'last':
                 evt.reply(await lastRoll(evt.author.id));
                 break;
-                // =top
             case 'top':
                 evt.reply(await findtop(evt.author.id));
                 break;
-                // =countdown
             case 'countdown':
             case 'time':
                 evt.reply(await countdown(evt.author.id));
                 break;
-                // =best
             case 'best':
                 evt.reply(await best());
                 break;

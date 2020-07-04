@@ -8,4 +8,4 @@ module.exports = class User {
         this.username = name;
         this.lastRoll = null;
     }
-}
+};

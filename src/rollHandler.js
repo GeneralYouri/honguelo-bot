@@ -1,32 +1,30 @@
 const eloRoles = require('./eloRoles.json');
+const User = require("./user.js");
 const userRepo = require('./userRepo.js');
 const discordHandler = require('./discordHandler');
-var User = require("./user.js");
-
 
 module.exports.userCanRoll = userCanRoll;
 module.exports.evtRoll = doRoll;
 module.exports.roll = roll;
 
 function userCanRoll(user) {
-    if(user.lastRoll === null) return true;
+    if (user.lastRoll === null) return true;
 
-    var midnight = new Date();
+    const midnight = new Date();
     midnight.setHours(0, 0, 0, 0);
     return (user.lastRoll < midnight);
 }
 
 async function doRoll(evt) {
-
-    let rollres = roll();
+    const rollres = roll();
     let reply = await updateRoll(rollres, evt.author.id, evt.author.username);
 
     if (reply === null) {
-        var getout = discordHandler.getEmoji("getout");
+        const getout = discordHandler.getEmoji("getout");
         reply = `you already had your roll today. ${getout}`;
     } else {
-        var roleName = null;
-        var i = 0;
+        let roleName = null;
+        let i = 0;
         //find which role to give based on the roll
         while (roleName === null) {
             if (rollres < eloRoles[i].topBound)
@@ -44,7 +42,7 @@ async function doRoll(evt) {
 async function updateRoll(rollres, userId, username) {
     console.log("Rolling for " + username);
 
-    var user = await userRepo.findUserById(userId);
+    let user = await userRepo.findUserById(userId);
     if (!user) {
         user = new User(userId, username);
     }
@@ -63,18 +61,18 @@ async function updateRoll(rollres, userId, username) {
 }
 
 function roll() {
-    var res = Math.round(Math.random() * 5000 + 1);
+    const res = Math.round(Math.random() * 5000 + 1);
 
     return res;
 }
 
 function score(data) {
-    var avg = 0;
-    var seasonLengt = 30;
+    let avg = 0;
+    const seasonLength = 30;
 
     if (data.length) {
-        for (var i = 0; i < data.length; i++)
-            avg += data[i]/seasonLengt;
+        for (let i = 0; i < data.length; i++)
+            avg += data[i] / seasonLength;
     }
 
     return avg;
