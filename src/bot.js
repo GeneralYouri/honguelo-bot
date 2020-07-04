@@ -164,7 +164,7 @@ async function rank(userid) {
 async function counter(userid) {
     var user = await userRepo.findUserById(userid);
     var msg;
-    if (user === null || user.rolls.lengt === 0) {
+    if (user === null || user.rolls.length === 0) {
         msg = "you have not rolled yet";
     } else {
         msg = "you rolled " + user.rolls.length + " times."
