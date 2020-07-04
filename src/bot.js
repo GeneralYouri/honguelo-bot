@@ -128,7 +128,7 @@ async function countdown(userid) {
 async function best() {
     var bestRolls = await userRepo.findAllOrderByBestRoll();
 
-    if (bestRolls === null || bestRolls.size === 0) {
+    if (bestRolls === null || bestRolls.length === 0) {
         return "there have been no rolls this season so far";
     }
 
