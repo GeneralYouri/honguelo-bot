@@ -7,4 +7,5 @@
   "leaderboardChannelID": ""
   "roleChannelID": "",
   "roleMessageID": "",
+  "seasonLength": "30",
 }
