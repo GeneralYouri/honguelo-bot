@@ -1,5 +1,6 @@
 var Discord = require('discord.js');
 var auth = require('./auth.json');
+const config = require('../config.json');
 const eloRoles = require('./eloRoles.json');
 
 var honguGuild = null;
@@ -8,8 +9,8 @@ client.login(auth.token)
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
-    client.channels.cache.get('726379536832266271').messages.fetch('726379869092577380'); //specific channel/msg id
-    honguGuild = client.guilds.cache.get("723217977998180452"); //HONGUELO server id
+    client.channels.cache.get(config.roleChannelID).messages.fetch(config.roleMessageID);
+    honguGuild = client.guilds.cache.get(config.guildID);
 });
 
 client.on('guildMemberAdd', (evt) => {
@@ -25,7 +26,7 @@ client.on('guildMemberAdd', (evt) => {
 })
 
 client.on('messageReactionAdd', (reaction, user) => {
-    if (reaction.message.id === '726379869092577380') {
+    if (reaction.message.id === config.roleMessageID) {
         let userid = user.id;
         let guild = honguGuild;
         let member = guild.members.cache.find(member => member.id === userid);

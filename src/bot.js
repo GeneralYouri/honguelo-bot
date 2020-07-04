@@ -40,7 +40,7 @@ var midnightPost = schedule.scheduleJob('0 0 0 * * *', async function () {
 
     msg += "\n\nYou can now roll again.```";
     msg += "\n<@&" + await discordHandler.getRole(null, "Addicted").id + "> Ping.";
-    discordHandler.sendMessageToChannel('723818579845185536', msg); //leaderboard id
+    discordHandler.sendMessageToChannel(config.leaderboardChannelID, msg);
 });
 
 async function getaverage(userid) {
